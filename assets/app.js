@@ -60,6 +60,42 @@
     reveals.forEach(function (el) { el.classList.add("in"); });
   }
 
+  // ---- 읽기 진행바 ----
+  var pbar = document.getElementById("progress-bar");
+  if (pbar) {
+    var updatePbar = function () {
+      var el = document.documentElement;
+      var max = el.scrollHeight - el.clientHeight;
+      pbar.style.width = (max > 0 ? (el.scrollTop / max) * 100 : 0) + "%";
+    };
+    window.addEventListener("scroll", updatePbar, { passive: true });
+    window.addEventListener("resize", updatePbar);
+    updatePbar();
+  }
+
+  // ---- 목차 스크롤스파이 (현재 섹션 하이라이트) ----
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll(".toc a"));
+  if (tocLinks.length && "IntersectionObserver" in window) {
+    var targetMap = new Map();
+    tocLinks.forEach(function (a) {
+      var id = (a.getAttribute("href") || "").replace(/^#/, "");
+      var el = id && document.getElementById(id);
+      if (el) targetMap.set(el, a);
+    });
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          var a = targetMap.get(en.target);
+          if (a) {
+            tocLinks.forEach(function (l) { l.classList.remove("active"); });
+            a.classList.add("active");
+          }
+        }
+      });
+    }, { rootMargin: "-18% 0px -72% 0px", threshold: 0 });
+    targetMap.forEach(function (a, el) { spy.observe(el); });
+  }
+
   // ---- 간편 예약 폼 (정적: 입력 요약 + 연락 채널 안내) ----
   var form = document.querySelector("#reserve-form");
   if (form) {

@@ -339,3 +339,45 @@ img { max-width: 100%; display: block; }
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }
 }
+
+/* ===== 읽기 진행바 (상단) ===== */
+.progress-bar { position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 200; background: var(--grad); box-shadow: 0 0 12px rgba(255, 61, 139, .6); transition: width .08s linear; pointer-events: none; }
+
+/* ===== 목차 (TOC) ===== */
+.toc { background: linear-gradient(180deg, var(--surface-2), var(--surface)); border: 1px solid var(--border); border-radius: 16px; padding: 16px 16px 14px; position: relative; overflow: hidden; }
+.toc::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--hairline); }
+.toc-title { font-size: .74rem; letter-spacing: 2px; color: var(--gold); font-weight: 800; margin-bottom: 10px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.toc-title::before { content: "目"; font-size: .9rem; opacity: .8; }
+.toc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.toc-list li { margin: 0; padding: 0; }
+.toc-list li::before { content: none; }
+.toc-list a { display: flex; gap: 10px; align-items: baseline; padding: 8px 10px; border-radius: 9px; color: var(--muted); font-size: .9rem; line-height: 1.4; border-left: 2px solid transparent; transition: color .2s, background .2s, border-color .2s; }
+.toc-list a:hover { color: var(--text); background: var(--surface-2); }
+.toc-list a.active { color: var(--text); background: linear-gradient(90deg, rgba(231, 200, 122, .16), transparent); border-left-color: var(--gold); }
+.toc-num { color: var(--gold); font-weight: 700; font-size: .76rem; min-width: 1.5em; font-variant-numeric: tabular-nums; }
+
+/* 메인/지역: 중앙 카드형 목차 */
+.toc-card { max-width: 760px; margin: 0 auto; }
+.toc-card .toc-list { display: grid; grid-template-columns: 1fr; gap: 2px; }
+@media (min-width: 700px) { .toc-card .toc-list { grid-template-columns: 1fr 1fr; column-gap: 14px; } }
+
+/* 개별 페이지: 사이드바형 목차 + 본문 2단 */
+.article-layout { display: grid; grid-template-columns: 1fr; gap: 26px; }
+@media (min-width: 980px) {
+  .article-layout { grid-template-columns: 252px minmax(0, 1fr); gap: 44px; align-items: start; }
+  .toc-side { position: sticky; top: calc(var(--header-h) + 18px); max-height: calc(100vh - var(--header-h) - 36px); overflow: auto; }
+}
+
+/* ===== 본문 가독성 강화 ===== */
+.prose { font-size: 1.05rem; line-height: 1.92; }
+.prose > h2 { position: relative; padding-left: 18px; margin: 42px 0 16px; font-size: clamp(1.35rem, 4vw, 1.95rem); scroll-margin-top: calc(var(--header-h) + 16px); }
+.prose > h2:first-child { margin-top: 6px; }
+.prose > h2::before { content: ""; position: absolute; left: 0; top: .16em; bottom: .16em; width: 5px; border-radius: 3px; background: var(--grad-gold); box-shadow: 0 0 14px rgba(231, 200, 122, .35); }
+.prose h3 { color: var(--gold); margin: 28px 0 8px; font-size: 1.12rem; }
+.prose p { margin-bottom: 16px; }
+.prose p + p { margin-top: -2px; }
+.prose ul { margin: 6px 0 20px; padding: 0; list-style: none; }
+.prose ul li { position: relative; padding-left: 24px; margin-bottom: 11px; color: var(--muted); }
+.prose ul li::before { content: "◆"; position: absolute; left: 2px; top: .42em; color: var(--gold); font-size: .62em; }
+.prose strong { color: var(--text); font-weight: 700; }
+.prose ::selection { background: rgba(255, 61, 139, .3); }

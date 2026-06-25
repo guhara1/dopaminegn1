@@ -205,7 +205,8 @@ def header_html(cur_dir):
 {subs}
         </ul>
       </li>'''.format(hub=rel(hub, cur_dir), label=esc(label), subs=sub_html))
-    return '''  <header class="site-header">
+    return '''  <div class="progress-bar" id="progress-bar"></div>
+  <header class="site-header">
     <div class="wrap header-inner">
       <a class="brand" href="{home}">
         <span class="logo">도파민</span>
@@ -232,6 +233,26 @@ def breadcrumb_html(trail, cur_dir):
         else:
             parts.append('<a href="{}">{}</a>'.format(rel(path, cur_dir), esc(name)))
     return '  <div class="wrap"><nav class="breadcrumb" aria-label="breadcrumb">' + " › ".join(parts) + "</nav></div>"
+
+
+def toc_nav(items, extra_class=""):
+    """items: [(라벨, anchor_id)] → 클릭 시 해당 섹션으로 이동하는 목차."""
+    lis = "\n".join(
+        '        <li><a href="#{hid}"><span class="toc-num">{n:02d}</span><span>{label}</span></a></li>'.format(hid=hid, n=i + 1, label=esc(label))
+        for i, (label, hid) in enumerate(items)
+    )
+    return '''<nav class="toc {cls}" aria-label="목차">
+      <p class="toc-title">목차</p>
+      <ol class="toc-list">
+{lis}
+      </ol>
+    </nav>'''.format(cls=extra_class, lis=lis)
+
+
+def toc_card_section(items):
+    return '''  <section class="section" style="padding-top:34px;padding-bottom:0"><div class="wrap">
+    <div class="toc-card">{toc}</div>
+  </div></section>'''.format(toc=toc_nav(items, "toc-card-inner"))
 
 
 def byline_html(cur_dir):
@@ -445,10 +466,16 @@ def location_html():
 
 # ---------- 본문 블록 → HTML ----------
 def render_blocks(blocks):
+    """본문 HTML과 목차(h2 기준)를 함께 반환. h2에는 앵커 id 부여."""
     out = []
+    toc = []
+    n = 0
     for kind, val in blocks:
         if kind == "h2":
-            out.append("      <h2>{}</h2>".format(esc(val)))
+            n += 1
+            hid = "sec-{}".format(n)
+            toc.append((val, hid))
+            out.append('      <h2 id="{hid}">{t}</h2>'.format(hid=hid, t=esc(val)))
         elif kind == "h3":
             out.append("      <h3>{}</h3>".format(esc(val)))
         elif kind == "p":
@@ -456,7 +483,7 @@ def render_blocks(blocks):
         elif kind == "ul":
             lis = "".join("<li>{}</li>".format(esc(x)) for x in val)
             out.append("      <ul>{}</ul>".format(lis))
-    return "\n".join(out)
+    return "\n".join(out), toc
 
 
 def related_html(related, cur_dir, outbound):
@@ -879,8 +906,8 @@ def build_article(a, idx=0):
     canonical = "{}/pages/{}.html".format(BASE_URL, a["slug"])
     trail = [("홈", "index.html")] + a["trail_mid"]
     rating, count, revs = reviews_for(idx)
-    # 본문
-    prose = render_blocks(a["blocks"])
+    # 본문 + 목차
+    prose, toc = render_blocks(a["blocks"])
     extra = ""
     if a.get("extra") == "__FAQ__":
         items = "\n".join('        <details class="info-card reveal"><summary style="cursor:pointer;font-weight:700">{q}</summary><p style="color:var(--muted);margin-top:10px">{ans}</p></details>'.format(q=esc(q), ans=esc(ans)) for q, ans in FAQ)
@@ -898,9 +925,15 @@ def build_article(a, idx=0):
     </div>
   </section>'''.format(h1=esc(a["h1"]), lead=esc(a["lead"]), tel=CONTACT_TEL, kakao=KAKAO_URL)
 
-    article = '''  <article class="section"><div class="wrap prose reveal">
+    aside = '<aside class="toc-side reveal">{}</aside>'.format(toc_nav(toc)) if toc else ""
+    article = '''  <section class="section" id="content"><div class="wrap">
+    <div class="article-layout">
+      {aside}
+      <article class="prose reveal">
 {prose}
-  </div></article>'''.format(prose=prose)
+      </article>
+    </div>
+  </div></section>'''.format(aside=aside, prose=prose)
 
     # 스키마: 페이지 타입 + 후기/리뷰/점수(LocalBusiness, 노출 콘텐츠와 일치)
     schema_objs = [breadcrumb_schema([(n, p if p is None else p) for n, p in trail])]
@@ -964,8 +997,10 @@ def build_main():
                        how=rel("pages/how.html", cur_dir), price=rel("pages/price.html", cur_dir),
                        phone=rel("pages/reserve-phone.html", cur_dir), kakao=rel("pages/reserve-kakao.html", cur_dir))
 
+    main_toc = [("도파민 소개", "about"), ("도파민만의 특별함", "features"), ("룸 & 시설", "rooms"),
+                ("후기 & 신뢰도", "reviews"), ("오시는 길", "location"), ("주제별 안내", "topics"), ("지역별 가라오케", "regions")]
     body = "\n\n".join([
-        header_html(cur_dir), hero, prose, features_html(cur_dir), rooms_html(cur_dir),
+        header_html(cur_dir), hero, toc_card_section(main_toc), prose, features_html(cur_dir), rooms_html(cur_dir),
         reviews_html(MAIN_RATING, MAIN_COUNT, MAIN_REVIEWS), location_html(),
         topic_links_html(cur_dir), region_links_html(cur_dir), cta_band_html(cur_dir), footer_html(cur_dir),
     ])
@@ -1003,8 +1038,10 @@ def build_region(r):
                        kakao=rel("pages/reserve-kakao.html", cur_dir), price=rel("pages/price.html", cur_dir),
                        location=rel("pages/location.html", cur_dir))
 
+    region_toc = [(area + " 소개", "about"), ("도파민만의 특별함", "features"), ("룸 & 시설", "rooms"),
+                  ("후기 & 신뢰도", "reviews"), ("오시는 길", "location"), ("주제별 안내", "topics"), ("주변 지역", "regions")]
     body = "\n\n".join([
-        header_html(cur_dir), breadcrumb_html(trail, cur_dir), hero, intro,
+        header_html(cur_dir), breadcrumb_html(trail, cur_dir), hero, toc_card_section(region_toc), intro,
         features_html(cur_dir), rooms_html(cur_dir),
         reviews_html(r["rating"], r["count"], r["reviews"]), location_html(),
         topic_links_html(cur_dir, area=area), region_links_html(cur_dir, current=r["slug"]),
