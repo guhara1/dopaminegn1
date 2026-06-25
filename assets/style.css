@@ -1,18 +1,28 @@
 /* ===== 강남 가라오케 도파민 — 디자인 시스템 (모바일 퍼스트) ===== */
 :root {
-  --bg: #08060d;
-  --bg-2: #100b1c;
-  --bg-3: #17112a;
-  --surface: rgba(255, 255, 255, 0.045);
-  --surface-2: rgba(255, 255, 255, 0.07);
-  --border: rgba(255, 255, 255, 0.10);
-  --text: #f4eefc;
-  --muted: #b3a8c9;
-  --accent: #ff2d7e;
-  --accent-2: #9b3cff;
-  --gold: #f5c451;
-  --grad: linear-gradient(135deg, #ff2d7e, #9b3cff);
-  --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  /* ===== 프리미엄 팔레트 (옵시디언 + 샴페인 골드 + 로즈/바이올렛) ===== */
+  --bg: #070510;
+  --bg-2: #0f0a1d;
+  --bg-3: #181030;
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-2: rgba(255, 255, 255, 0.085);
+  --border: rgba(231, 200, 122, 0.16);      /* 골드 틴트 보더 */
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --text: #f7f2ff;
+  --muted: #b8accf;
+  --accent: #ff3d8b;                          /* 로즈 */
+  --accent-2: #a44bff;                         /* 바이올렛 */
+  --gold: #e7c87a;                             /* 샴페인 골드 (프리미엄 주 강조) */
+  --gold-2: #c39a45;
+  --grad: linear-gradient(135deg, #ff3d8b, #a44bff);
+  --grad-gold: linear-gradient(135deg, #f1d693, #c39a45);
+  /* 컴포넌트 오버레이 토큰 */
+  --overlay-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 42%);
+  --overlay-glow: radial-gradient(120% 100% at 50% 0%, rgba(164, 75, 255, 0.16), transparent 60%);
+  --overlay-vignette: radial-gradient(120% 80% at 50% 30%, transparent 55%, rgba(0, 0, 0, 0.45));
+  --hairline: linear-gradient(90deg, transparent, rgba(231, 200, 122, 0.55), transparent);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 14px 34px rgba(195, 154, 69, 0.28);
   --radius: 18px;
   --header-h: 64px;
 }
@@ -251,6 +261,41 @@ img { max-width: 100%; display: block; }
 /* 브레드크럼 */
 .breadcrumb { font-size: .84rem; color: var(--muted); padding: 16px 0 0; }
 .breadcrumb a:hover { color: var(--text); }
+
+/* ===== 바이라인 (E-E-A-T 신뢰 신호) ===== */
+.byline { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; padding: 16px 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--muted); font-size: .9rem; }
+.byline strong { color: var(--text); font-weight: 700; }
+.byline a { color: var(--gold); }
+
+/* ===== CTA 밴드 ===== */
+.cta-band { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between; padding: 30px 28px; border-radius: 22px; border: 1px solid var(--border); background: linear-gradient(135deg, rgba(164,75,255,.18), rgba(255,61,139,.14)), var(--bg-3); box-shadow: var(--shadow); position: relative; overflow: hidden; }
+.cta-band::before { content: ""; position: absolute; inset: 0; background: var(--overlay-sheen); pointer-events: none; }
+.cta-band h3 { font-size: clamp(1.2rem, 3.5vw, 1.6rem); }
+.cta-band p { color: var(--muted); margin-top: 6px; }
+.cta-band-btns { display: flex; gap: 10px; flex-wrap: wrap; position: relative; }
+
+/* ===== 컴포넌트 오버레이 (프리미엄 광택 + 골드 헤어라인) ===== */
+.feature, .room, .info-card, .contact-card, .review, .loc-info, .reserve-form, .map-embed { position: relative; }
+.feature, .info-card, .contact-card, .review, .loc-info, .reserve-form { overflow: hidden; }
+.feature::before, .info-card::before, .contact-card::before, .review::before, .loc-info::before, .reserve-form::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: var(--overlay-sheen); opacity: .8;
+}
+.feature::after, .info-card::after, .contact-card::after, .reserve-form::after, .loc-info::after {
+  content: ""; position: absolute; top: 0; left: 18px; right: 18px; height: 1px; pointer-events: none;
+  background: var(--hairline); opacity: 0; transition: opacity .25s ease;
+}
+.feature:hover::after, .info-card:hover::after, .contact-card:hover::after { opacity: 1; }
+.section-head .tag { color: var(--gold); }
+.eyebrow { color: var(--gold); border-color: rgba(231, 200, 122, .45); background: rgba(231, 200, 122, .08); }
+.hero::before {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: var(--overlay-glow), var(--overlay-vignette);
+}
+.btn-gold { background: var(--grad-gold); color: #2a1c00; box-shadow: var(--shadow-gold); }
+.btn-gold:hover { transform: translateY(-2px); }
+.price-banner { background: var(--grad); }
+.price-banner::before { content: ""; position: absolute; inset: 0; background: var(--overlay-sheen); pointer-events: none; }
 
 /* ===== 반응형 ===== */
 @media (min-width: 700px) {

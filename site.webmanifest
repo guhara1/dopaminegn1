@@ -1,0 +1,26 @@
+{
+  "name": "강남 가라오케 도파민",
+  "short_name": "도파민",
+  "lang": "ko",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070510",
+  "theme_color": "#0f0a1d",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
