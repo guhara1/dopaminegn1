@@ -98,6 +98,34 @@ MAIN_REVIEWS = [
     ("이O호", 5, "안주 퀄리티가 노래방 수준이 아니에요. 강남 맛집급."),
 ]
 
+# 후기 풀(페이지별 변주) + 롱테일 내부링크 토픽
+REVIEW_POOL = list(MAIN_REVIEWS)
+for _r in REGIONS:
+    REVIEW_POOL += _r["reviews"]
+
+REGION_TOPICS = ["24시 가라오케", "프리미엄 가라오케", "가라오케 가격", "가라오케 룸 추천",
+                 "가라오케 예약", "노래방 추천", "접대 가라오케", "파티 가라오케"]
+
+TOPIC_PAGES = [
+    ("강남 가라오케 룸 & 시설 안내", "pages/rooms.html"),
+    ("강남 가라오케 요금 & 할인", "pages/price.html"),
+    ("강남 가라오케 이용 방법 (1·2부)", "pages/how.html"),
+    ("강남 가라오케 파티 & 이벤트", "pages/event.html"),
+    ("강남 가라오케 프리미엄 서비스", "pages/service-premium.html"),
+    ("강남 가라오케 주류 & 안주 메뉴", "pages/menu.html"),
+    ("강남 가라오케 오시는 길", "pages/location.html"),
+    ("24시 실시간 예약 문의", "pages/reservation.html"),
+]
+
+
+def reviews_for(seed, k=3):
+    """페이지별로 후기·점수를 결정적으로 변주(스키마-노출 콘텐츠 일치용)."""
+    n = len(REVIEW_POOL)
+    revs = [REVIEW_POOL[(seed * 3 + j) % n] for j in range(k)]
+    rating = [4.9, 4.8, 4.7][seed % 3]
+    count = 120 + (seed * 17) % 160
+    return rating, count, revs
+
 
 def esc(s):
     return html.escape(str(s), quote=True)
@@ -229,20 +257,41 @@ def cta_band_html(cur_dir, label="지금 바로 예약 문의하기"):
 
 
 def region_links_html(cur_dir, current=None, title="강남 지역별 가라오케"):
+    """지역 페이지로의 내부링크 — 지역별 롱테일 토픽 앵커로 강화."""
     out = []
-    for r in REGIONS:
+    for i, r in enumerate(REGIONS):
         if r["slug"] == current:
             continue
-        out.append('        <a href="{href}">{area} 가라오케 도파민</a>'.format(href=rel("regions/{}.html".format(r["slug"]), cur_dir), area=esc(r["area"])))
+        topic = REGION_TOPICS[i % len(REGION_TOPICS)]
+        anchor = "{area} {topic}".format(area=r["area"], topic=topic)
+        out.append('        <a href="{href}">{anchor}</a>'.format(href=rel("regions/{}.html".format(r["slug"]), cur_dir), anchor=esc(anchor)))
     return '''  <section class="section alt" id="regions">
     <div class="wrap">
       <div class="section-head reveal"><span class="tag">AREA</span><h2>{title}</h2>
-        <p>가까운 지역의 도파민 정보도 확인해 보세요.</p></div>
+        <p>강남·선릉·삼성동을 비롯한 강남권 전 지역의 도파민 가라오케 정보를 확인하세요.</p></div>
       <div class="linklist reveal">
 {links}
       </div>
     </div>
   </section>'''.format(title=esc(title), links="\n".join(out))
+
+
+def topic_links_html(cur_dir, area=None):
+    """주제별 핵심 페이지로의 롱테일 내부링크 (지역 페이지에선 지역명으로 변주)."""
+    out = []
+    for label, target in TOPIC_PAGES:
+        anchor = label.replace("강남", area, 1) if area else label
+        out.append('        <a href="{href}">{anchor}</a>'.format(href=rel(target, cur_dir), anchor=esc(anchor)))
+    sub = "{a} 가라오케의 룸·요금·서비스·예약을 주제별로 빠르게 확인하세요.".format(a=area) if area else "룸·요금·서비스·예약 등 주제별로 빠르게 확인하세요."
+    return '''  <section class="section" id="topics">
+    <div class="wrap">
+      <div class="section-head reveal"><span class="tag">GUIDE</span><h2>주제별 안내 바로가기</h2>
+        <p>{sub}</p></div>
+      <div class="linklist reveal">
+{links}
+      </div>
+    </div>
+  </section>'''.format(sub=esc(sub), links="\n".join(out))
 
 
 def footer_html(cur_dir):
@@ -825,10 +874,11 @@ def build_articles():
     return P
 
 
-def build_article(a):
+def build_article(a, idx=0):
     cur_dir = "pages"
     canonical = "{}/pages/{}.html".format(BASE_URL, a["slug"])
     trail = [("홈", "index.html")] + a["trail_mid"]
+    rating, count, revs = reviews_for(idx)
     # 본문
     prose = render_blocks(a["blocks"])
     extra = ""
@@ -852,11 +902,12 @@ def build_article(a):
 {prose}
   </div></article>'''.format(prose=prose)
 
-    # 스키마
+    # 스키마: 페이지 타입 + 후기/리뷰/점수(LocalBusiness, 노출 콘텐츠와 일치)
     schema_objs = [breadcrumb_schema([(n, p if p is None else p) for n, p in trail])]
     if a["schema_type"] == "FAQPage":
         schema_objs.append(faq_schema())
     schema_objs.append(article_schema(a["title"], a["desc"], canonical, "Article" if a["schema_type"] in ("FAQPage",) else a["schema_type"]))
+    schema_objs.append(local_business_schema(SITE_NAME, canonical, a["desc"], rating, count, revs))
 
     body = "\n\n".join([
         header_html(cur_dir),
@@ -864,8 +915,11 @@ def build_article(a):
         hero,
         article,
         extra,
+        reviews_html(rating, count, revs),
         byline_html(cur_dir),
         related_html(a["related"], cur_dir, a["outbound"]),
+        topic_links_html(cur_dir),
+        region_links_html(cur_dir),
         cta_band_html(cur_dir),
         footer_html(cur_dir),
     ])
@@ -913,7 +967,7 @@ def build_main():
     body = "\n\n".join([
         header_html(cur_dir), hero, prose, features_html(cur_dir), rooms_html(cur_dir),
         reviews_html(MAIN_RATING, MAIN_COUNT, MAIN_REVIEWS), location_html(),
-        region_links_html(cur_dir), cta_band_html(cur_dir), footer_html(cur_dir),
+        topic_links_html(cur_dir), region_links_html(cur_dir), cta_band_html(cur_dir), footer_html(cur_dir),
     ])
     schema_objs = [website_schema(), local_business_schema(SITE_NAME, BASE_URL + "/", desc, MAIN_RATING, MAIN_COUNT, MAIN_REVIEWS)]
     page = head_html(title, desc, kw, BASE_URL + "/", schema_objs, cur_dir) + "\n" + body + "\n</body>\n</html>\n"
@@ -953,7 +1007,8 @@ def build_region(r):
         header_html(cur_dir), breadcrumb_html(trail, cur_dir), hero, intro,
         features_html(cur_dir), rooms_html(cur_dir),
         reviews_html(r["rating"], r["count"], r["reviews"]), location_html(),
-        region_links_html(cur_dir, current=r["slug"]), cta_band_html(cur_dir), footer_html(cur_dir),
+        topic_links_html(cur_dir, area=area), region_links_html(cur_dir, current=r["slug"]),
+        cta_band_html(cur_dir), footer_html(cur_dir),
     ])
     schema_objs = [breadcrumb_schema(trail),
                    local_business_schema(area + " 가라오케 도파민", canonical, desc, r["rating"], r["count"], r["reviews"], area=area)]
@@ -1014,8 +1069,8 @@ def build():
         if a["slug"] in content and content[a["slug"]]:
             a["blocks"] = content[a["slug"]]
     build_main()
-    for a in articles:
-        build_article(a)
+    for i, a in enumerate(articles):
+        build_article(a, i)
     for r in REGIONS:
         build_region(r)
     build_sitemap_robots(articles)
