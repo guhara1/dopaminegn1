@@ -1,0 +1,91 @@
+:root {
+  --bg: #0c0a14;
+  --bg-2: #141022;
+  --accent: #e63b8a;
+  --accent-2: #8a3bff;
+  --text: #f3eefb;
+  --muted: #b6abc9;
+  --card: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  background: radial-gradient(circle at top, var(--bg-2), var(--bg));
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+a { color: inherit; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+/* Header / Nav */
+header { padding: 18px 0; border-bottom: 1px solid var(--border); }
+.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; text-decoration: none; }
+.brand .dot {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 800; color: #fff;
+}
+.nav-links { display: flex; gap: 14px; flex-wrap: wrap; font-size: .92rem; }
+.nav-links a { color: var(--muted); text-decoration: none; transition: color .2s; }
+.nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--text); }
+
+/* Breadcrumb */
+.breadcrumb { font-size: .85rem; color: var(--muted); padding: 16px 0 0; }
+.breadcrumb a { text-decoration: none; color: var(--muted); }
+.breadcrumb a:hover { color: var(--text); }
+
+/* Hero */
+.hero { padding: 40px 0 50px; text-align: center; }
+.hero h1 {
+  font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.25; letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #fff, var(--accent));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero p.lead { margin-top: 18px; font-size: clamp(1rem, 2.5vw, 1.25rem); color: var(--muted); }
+.badges { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.badge { border: 1px solid rgba(230, 59, 138, .4); background: rgba(230, 59, 138, .08); padding: 8px 16px; border-radius: 999px; font-size: .9rem; }
+.cta {
+  margin-top: 34px; display: inline-flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff; text-decoration: none; font-weight: 700;
+  padding: 16px 34px; border-radius: 999px; box-shadow: 0 12px 30px rgba(138, 59, 255, .35); font-size: 1.1rem;
+}
+.cta.small { margin-top: 0; padding: 10px 22px; font-size: .95rem; }
+
+/* Sections */
+section.block { padding: 10px 0 50px; }
+section.block h2 { font-size: clamp(1.4rem, 4vw, 2rem); margin-bottom: 8px; }
+section.block > .sub { color: var(--muted); margin-bottom: 24px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 24px; }
+.card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+.card p { color: var(--muted); font-size: .95rem; }
+
+/* Reviews */
+.rating-summary { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
+.rating-score { font-size: 2.4rem; font-weight: 800; color: var(--accent); }
+.stars { color: #ffcf4d; letter-spacing: 2px; font-size: 1.1rem; }
+.review { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+.review .who { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.review .who strong { font-size: .98rem; }
+.review .who .stars { font-size: .95rem; }
+.review p { color: var(--muted); font-size: .95rem; }
+
+/* Internal links / related */
+.linklist { display: flex; flex-wrap: wrap; gap: 10px; }
+.linklist a {
+  text-decoration: none; color: var(--text); font-size: .92rem;
+  border: 1px solid var(--border); background: var(--card);
+  padding: 9px 16px; border-radius: 999px; transition: border-color .2s;
+}
+.linklist a:hover { border-color: var(--accent); }
+
+/* Footer */
+footer { border-top: 1px solid var(--border); padding: 36px 0 56px; color: var(--muted); font-size: .88rem; }
+footer .foot-links { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0 18px; }
+footer .foot-links a { color: var(--muted); text-decoration: none; }
+footer .foot-links a:hover { color: var(--text); }
