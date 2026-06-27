@@ -1,4 +1,24 @@
 User-agent: *
 Allow: /
 
+# 구글
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+# 네이버
+User-agent: Yeti
+Allow: /
+
+# 빙
+User-agent: bingbot
+Allow: /
+
+# 다음
+User-agent: Daumoa
+Allow: /
+
 Sitemap: https://dopaminegn1.com/sitemap.xml
+Sitemap: https://dopaminegn1.com/rss.xml

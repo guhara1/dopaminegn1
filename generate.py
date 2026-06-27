@@ -10,6 +10,7 @@
 - 선호 썸네일: og:image + schema image, 파비콘/매니페스트
 - 프리미엄 팔레트 토큰 + 컴포넌트 오버레이 (assets/style.css, assets/app.js)
 """
+import datetime
 import html
 import json
 import os
@@ -26,7 +27,7 @@ KAKAO_URL = "#"               # TODO: 카카오톡 채널 링크로 교체
 OG_IMAGE = BASE_URL + "/og-image.png"
 AUTHOR = "도파민 운영팀"
 REVIEWER = "도파민 매니지먼트"
-UPDATED = "2026-06-25"
+UPDATED = "2026-06-27"
 MAP_SRC = "https://www.google.com/maps?q=" + urllib.parse.quote(ADDRESS) + "&hl=ko&z=16&output=embed"
 OUT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -371,6 +372,8 @@ def head_html(title, desc, keywords, canonical, schema_objs, cur_dir):
   <meta name="application-name" content="{site}" />
   <meta name="keywords" content="{kw}" />
   <meta name="author" content="{author}" />
+  <meta name="naver-site-verification" content="d8be3c31a77cef21adc334aafa00798eda4c86e5" />
+  <meta name="google-site-verification" content="XLVtnbteVEYnR8ffkbbvG3MhtSFP-9TSpX_uFksxN0M" />
   <link rel="canonical" href="{canonical}" />
 
   <meta property="og:type" content="website" />
@@ -1058,18 +1061,81 @@ def build_region(r):
         f.write(page)
 
 
-def build_sitemap_robots(articles):
-    urls = [BASE_URL + "/"]
-    urls += [BASE_URL + "/pages/" + a["slug"] + ".html" for a in articles]
-    urls += [BASE_URL + "/regions/" + r["slug"] + ".html" for r in REGIONS]
+def _rfc822(datestr):
+    dt = datetime.datetime.strptime(datestr, "%Y-%m-%d")
+    days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    mons = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    return "{}, {:02d} {} {} 09:00:00 +0900".format(days[dt.weekday()], dt.day, mons[dt.month - 1], dt.year)
+
+
+def _all_pages(articles):
+    """(url, title, desc, priority) 목록 — 사이트맵/RSS 공용."""
+    main_title = "강남 가라오케 도파민 | 24시 연중무휴 프리미엄 파티 공간"
+    main_desc = "강남 선릉·삼성동에 위치한 프리미엄 가라오케 도파민. 24시간 연중무휴, 최첨단 시설과 현직 DJ 공연, 프라이빗한 공간에서 특별한 밤을 경험하세요. 실시간 특가 혜택!"
+    pages = [(BASE_URL + "/", main_title, main_desc, "1.0")]
+    for a in articles:
+        pages.append((BASE_URL + "/pages/" + a["slug"] + ".html", a["title"], a["desc"], "0.8"))
+    for r in REGIONS:
+        area = r["area"]
+        rt = "{a} 가라오케 도파민 | 24시 연중무휴 프리미엄 파티 공간".format(a=area)
+        rd = "{a} 가라오케는 도파민. {lead} 24시 연중무휴, 최첨단 시설과 현직 DJ 공연, 프라이빗한 공간. 실시간 추천과 특가 혜택!".format(a=area, lead=r["lead"])
+        pages.append((BASE_URL + "/regions/" + r["slug"] + ".html", rt, rd, "0.9"))
+    return pages
+
+
+def build_indexing(articles):
+    pages = _all_pages(articles)
+    pubdate = _rfc822(UPDATED)
+
+    # ----- sitemap.xml -----
     sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    for u in urls:
-        sm.append("  <url><loc>{}</loc><lastmod>{}</lastmod><changefreq>weekly</changefreq><priority>{}</priority></url>".format(u, UPDATED, "1.0" if u.endswith("/") else "0.8"))
+    for url, _t, _d, prio in pages:
+        freq = "daily" if prio == "1.0" else "weekly"
+        sm.append("  <url><loc>{}</loc><lastmod>{}</lastmod><changefreq>{}</changefreq><priority>{}</priority></url>".format(url, UPDATED, freq, prio))
     sm.append("</urlset>")
     with open(os.path.join(OUT_DIR, "sitemap.xml"), "w", encoding="utf-8") as f:
         f.write("\n".join(sm) + "\n")
+
+    # ----- rss.xml (네이버/구글 빠른 색인용 피드) -----
+    rss = ['<?xml version="1.0" encoding="UTF-8"?>',
+           '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+           '<channel>',
+           '  <title>강남 가라오케 도파민</title>',
+           '  <link>{}/</link>'.format(BASE_URL),
+           '  <atom:link href="{}/rss.xml" rel="self" type="application/rss+xml" />'.format(BASE_URL),
+           '  <description>강남 선릉·삼성동 24시 연중무휴 프리미엄 가라오케 도파민. 룸·요금·서비스·예약·지역 안내.</description>',
+           '  <language>ko-KR</language>',
+           '  <lastBuildDate>{}</lastBuildDate>'.format(pubdate),
+           '  <pubDate>{}</pubDate>'.format(pubdate),
+           '  <generator>dopamine-static-generator</generator>',
+           '  <image><url>{0}/og-image.png</url><title>강남 가라오케 도파민</title><link>{0}/</link></image>'.format(BASE_URL)]
+    for url, title, desc, _prio in pages:
+        rss.append('  <item>')
+        rss.append('    <title><![CDATA[{}]]></title>'.format(title))
+        rss.append('    <link>{}</link>'.format(url))
+        rss.append('    <guid isPermaLink="true">{}</guid>'.format(url))
+        rss.append('    <pubDate>{}</pubDate>'.format(pubdate))
+        rss.append('    <description><![CDATA[{}]]></description>'.format(desc))
+        rss.append('  </item>')
+    rss.append('</channel>')
+    rss.append('</rss>')
+    with open(os.path.join(OUT_DIR, "rss.xml"), "w", encoding="utf-8") as f:
+        f.write("\n".join(rss) + "\n")
+
+    # ----- robots.txt (구글/네이버/빙 크롤러 명시 허용 + 사이트맵·피드) -----
+    robots = (
+        "User-agent: *\n"
+        "Allow: /\n\n"
+        "# 구글\nUser-agent: Googlebot\nAllow: /\n\n"
+        "User-agent: Googlebot-Image\nAllow: /\n\n"
+        "# 네이버\nUser-agent: Yeti\nAllow: /\n\n"
+        "# 빙\nUser-agent: bingbot\nAllow: /\n\n"
+        "# 다음\nUser-agent: Daumoa\nAllow: /\n\n"
+        "Sitemap: {0}/sitemap.xml\n"
+        "Sitemap: {0}/rss.xml\n"
+    ).format(BASE_URL)
     with open(os.path.join(OUT_DIR, "robots.txt"), "w", encoding="utf-8") as f:
-        f.write("User-agent: *\nAllow: /\n\nSitemap: {}/sitemap.xml\n".format(BASE_URL))
+        f.write(robots)
 
 
 def build_webmanifest():
@@ -1113,9 +1179,9 @@ def build():
         build_article(a, i)
     for r in REGIONS:
         build_region(r)
-    build_sitemap_robots(articles)
+    build_indexing(articles)
     build_webmanifest()
-    print("생성 완료: index.html + {}개 개별 페이지 + {}개 지역 페이지 + sitemap/robots/manifest".format(len(articles), len(REGIONS)))
+    print("생성 완료: index.html + {}개 개별 페이지 + {}개 지역 페이지 + sitemap.xml/rss.xml/robots.txt/manifest".format(len(articles), len(REGIONS)))
 
 
 if __name__ == "__main__":
