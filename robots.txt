@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.dopamine-karaoke.com/sitemap.xml
+Sitemap: https://dopaminegn1.com/sitemap.xml

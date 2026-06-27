@@ -17,7 +17,7 @@ import posixpath
 import urllib.parse
 
 SITE_NAME = "강남 가라오케 도파민"
-BASE_URL = "https://www.dopamine-karaoke.com"
+BASE_URL = "https://dopaminegn1.com"
 ADDRESS = "서울특별시 강남구 선릉로92길 38"
 TEL_DISPLAY = "010-3431-0531"          # 예약 전화번호 (표시용)
 CONTACT_TEL = "tel:010-3431-0531"      # 예약 전화 링크
@@ -458,7 +458,7 @@ def location_html():
         <div class="map-embed reveal"><iframe src="{map}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="도파민 위치 지도"></iframe></div>
         <dl class="loc-info reveal">
           <dt>주소</dt><dd>{addr}</dd>
-          <dt>영업시간</dt><dd>365일 연중무휴 24시간<br>1부 15:00~01:00 · 2부 01:00~15:00</dd>
+          <dt>영업시간</dt><dd><strong>24시간 영업 · 365일 연중무휴</strong><br>1부 15:00~01:00 · 2부 01:00~15:00 (24시간 운영)</dd>
           <dt>예약·문의</dt><dd><a href="{tel}" style="color:var(--accent)">전화 예약 {tel_disp}</a> · <a href="{kakao}" style="color:var(--accent)">카카오톡 채널</a></dd>
           <dt>특별 서비스</dt><dd>강남권 VIP 최고급 차량 픽업 (사전 문의)</dd>
         </dl>
