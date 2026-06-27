@@ -19,7 +19,9 @@ import urllib.parse
 SITE_NAME = "강남 가라오케 도파민"
 BASE_URL = "https://www.dopamine-karaoke.com"
 ADDRESS = "서울특별시 강남구 선릉로92길 38"
-CONTACT_TEL = "tel:"          # TODO: 실제 전화번호로 교체 (예: tel:010-1234-5678)
+TEL_DISPLAY = "010-3431-0531"          # 예약 전화번호 (표시용)
+CONTACT_TEL = "tel:010-3431-0531"      # 예약 전화 링크
+TEL_INTL = "+82-10-3431-0531"          # 스키마용 국제 표기
 KAKAO_URL = "#"               # TODO: 카카오톡 채널 링크로 교체
 OG_IMAGE = BASE_URL + "/og-image.png"
 AUTHOR = "도파민 운영팀"
@@ -155,7 +157,7 @@ def review_schema(reviews):
 def local_business_schema(name, url, desc, rating, count, reviews, area=None):
     return {
         "@context": "https://schema.org", "@type": "NightClub", "name": name,
-        "image": OG_IMAGE, "url": url, "description": desc, "telephone": "", "priceRange": "₩₩₩",
+        "image": OG_IMAGE, "url": url, "description": desc, "telephone": TEL_INTL, "priceRange": "₩₩₩",
         "address": {"@type": "PostalAddress", "streetAddress": "선릉로92길 38", "addressLocality": "강남구", "addressRegion": "서울", "addressCountry": "KR"},
         "openingHoursSpecification": {"@type": "OpeningHoursSpecification",
                                       "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "opens": "00:00", "closes": "23:59"},
@@ -269,12 +271,12 @@ def byline_html(cur_dir):
 def cta_band_html(cur_dir, label="지금 바로 예약 문의하기"):
     return '''  <section class="section"><div class="wrap">
     <div class="cta-band reveal">
-      <div><h3>강남에서 가장 뜨거운 밤, 도파민</h3><p>연중무휴 24시간 · 주대 7만원부터 · 실시간 추천과 특가 혜택</p></div>
+      <div><h3>강남에서 가장 뜨거운 밤, 도파민</h3><p>연중무휴 24시간 · 주대 7만원부터 · 예약 문의 <a href="{tel}" style="color:var(--gold);font-weight:700">{tel_disp}</a></p></div>
       <div class="cta-band-btns">
         <a class="btn btn-primary" href="{tel}">{label}</a>
         <a class="btn btn-kakao" href="{kakao}">카카오톡 상담</a>
       </div>
-    </div></div></section>'''.format(tel=CONTACT_TEL, kakao=KAKAO_URL, label=esc(label))
+    </div></div></section>'''.format(tel=CONTACT_TEL, tel_disp=esc(TEL_DISPLAY), kakao=KAKAO_URL, label=esc(label))
 
 
 def region_links_html(cur_dir, current=None, title="강남 지역별 가라오케"):
@@ -327,6 +329,7 @@ def footer_html(cur_dir):
           <p>강남 선릉·삼성동에 위치한 24시 연중무휴 프리미엄 가라오케.</p>
           <p>{addr}</p>
           <p>365일 24시간 · 1부/2부 운영</p>
+          <p>예약 전화 <a href="{tel}" style="color:var(--gold);font-weight:700">{tel_disp}</a></p>
         </div>
         <div class="footer-col">
           <h5>메뉴</h5>
@@ -339,7 +342,7 @@ def footer_html(cur_dir):
         <div class="footer-col">
           <h5>회사 · 고객센터</h5>
           <a href="{company}">회사소개</a><a href="{terms}">이용약관</a><a href="{privacy}">개인정보처리방침</a>
-          <a href="{tel}">전화 예약</a><a href="{kakao}">카카오톡 채널</a>
+          <a href="{tel}">전화 예약 {tel_disp}</a><a href="{kakao}">카카오톡 채널</a>
         </div>
       </div>
       <div class="footer-bottom">
@@ -351,8 +354,8 @@ def footer_html(cur_dir):
   <div class="float-cta"><a class="btn btn-kakao" href="{kakao}">카톡 상담</a><a class="btn btn-primary" href="{tel}">전화 예약</a></div>
   <script src="{js}"></script>'''.format(addr=esc(ADDRESS), menu_links=menu_links, region_links=region_links,
                                           company=rel("pages/about-company.html", cur_dir), terms=rel("pages/terms.html", cur_dir),
-                                          privacy=rel("pages/privacy.html", cur_dir), tel=CONTACT_TEL, kakao=KAKAO_URL, base=BASE_URL,
-                                          js=rel("assets/app.js", cur_dir))
+                                          privacy=rel("pages/privacy.html", cur_dir), tel=CONTACT_TEL, tel_disp=esc(TEL_DISPLAY),
+                                          kakao=KAKAO_URL, base=BASE_URL, js=rel("assets/app.js", cur_dir))
 
 
 def head_html(title, desc, keywords, canonical, schema_objs, cur_dir):
@@ -456,12 +459,12 @@ def location_html():
         <dl class="loc-info reveal">
           <dt>주소</dt><dd>{addr}</dd>
           <dt>영업시간</dt><dd>365일 연중무휴 24시간<br>1부 15:00~01:00 · 2부 01:00~15:00</dd>
-          <dt>예약·문의</dt><dd><a href="{tel}" style="color:var(--accent)">전화 예약</a> · <a href="{kakao}" style="color:var(--accent)">카카오톡 채널</a></dd>
+          <dt>예약·문의</dt><dd><a href="{tel}" style="color:var(--accent)">전화 예약 {tel_disp}</a> · <a href="{kakao}" style="color:var(--accent)">카카오톡 채널</a></dd>
           <dt>특별 서비스</dt><dd>강남권 VIP 최고급 차량 픽업 (사전 문의)</dd>
         </dl>
       </div>
     </div>
-  </section>'''.format(map=MAP_SRC, addr=esc(ADDRESS), tel=CONTACT_TEL, kakao=KAKAO_URL)
+  </section>'''.format(map=MAP_SRC, addr=esc(ADDRESS), tel=CONTACT_TEL, tel_disp=esc(TEL_DISPLAY), kakao=KAKAO_URL)
 
 
 # ---------- 본문 블록 → HTML ----------
