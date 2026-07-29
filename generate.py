@@ -983,7 +983,7 @@ def build_main():
         <a class="btn btn-primary" href="{tel}">지금 예약하고 특가 혜택 받기</a>
         <a class="btn btn-gold" href="{rooms}">룸 둘러보기</a>
       </div>
-      <p class="scroll-hint reveal in">주대 7만원부터 · 웹 예약 한정 특가</p>
+      <p class="scroll-hint reveal in">웹 예약 한정 특가</p>
     </div>
   </section>'''.format(tel=CONTACT_TEL, rooms=rel("pages/rooms.html", cur_dir))
 
@@ -996,7 +996,7 @@ def build_main():
       <h2>24시간, 당신이 원하는 그 순간에</h2>
       <p>도파민은 365일 24시간 운영됩니다. 1부는 오후 3시부터 새벽 1시까지, 2부는 새벽 1시부터 오후 3시까지로, 언제든 편하게 방문하실 수 있습니다. 강남권 VIP 고객을 위한 <a href="{pickup}">최고급 차량 픽업 서비스</a>도 제공합니다. 자세한 이용 방법은 <a href="{how}">이용 안내</a>를 참고하세요.</p>
       <h2>지금, 도파민을 경험하세요</h2>
-      <p>주대 7만원부터 시작하는 합리적인 <a href="{price}">요금과 할인 혜택</a>, 그리고 웹 예약 한정 특가를 놓치지 마세요. 강남에서 가장 뜨거운 밤을 선사할 도파민 가라오케, 지금 바로 <a href="{phone}">전화</a> 또는 <a href="{kakao}">카카오톡 채널</a>로 예약 문의를 남겨주세요.</p>
+      <p>합리적인 <a href="{price}">요금과 할인 혜택</a>, 그리고 웹 예약 한정 특가를 놓치지 마세요. 강남에서 가장 뜨거운 밤을 선사할 도파민 가라오케, 지금 바로 <a href="{phone}">전화</a> 또는 <a href="{kakao}">카카오톡 채널</a>로 예약 문의를 남겨주세요.</p>
     </div>
   </section>'''.format(story=rel("pages/story.html", cur_dir), service=rel("pages/service.html", cur_dir),
                        rooms=rel("pages/rooms.html", cur_dir), pickup=rel("pages/pickup.html", cur_dir),
