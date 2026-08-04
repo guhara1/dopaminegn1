@@ -270,14 +270,16 @@ def byline_html(cur_dir):
 
 
 def cta_band_html(cur_dir, label="지금 바로 예약 문의하기"):
+    # 메인페이지(cur_dir="")에는 '주대 7만원부터' 문구를 노출하지 않는다.
+    price = "" if cur_dir == "" else "주대 7만원부터 · "
     return '''  <section class="section"><div class="wrap">
     <div class="cta-band reveal">
-      <div><h3>강남에서 가장 뜨거운 밤, 도파민</h3><p>연중무휴 24시간 · 주대 7만원부터 · 예약 문의 <a href="{tel}" style="color:var(--gold);font-weight:700">{tel_disp}</a></p></div>
+      <div><h3>강남에서 가장 뜨거운 밤, 도파민</h3><p>연중무휴 24시간 · {price}예약 문의 <a href="{tel}" style="color:var(--gold);font-weight:700">{tel_disp}</a></p></div>
       <div class="cta-band-btns">
         <a class="btn btn-primary" href="{tel}">{label}</a>
         <a class="btn btn-kakao" href="{kakao}">카카오톡 상담</a>
       </div>
-    </div></div></section>'''.format(tel=CONTACT_TEL, tel_disp=esc(TEL_DISPLAY), kakao=KAKAO_URL, label=esc(label))
+    </div></div></section>'''.format(tel=CONTACT_TEL, tel_disp=esc(TEL_DISPLAY), kakao=KAKAO_URL, label=esc(label), price=price)
 
 
 def region_links_html(cur_dir, current=None, title="강남 지역별 가라오케"):
@@ -971,7 +973,7 @@ def build_article(a, idx=0):
 # ---------- 메인 ----------
 def build_main():
     cur_dir = ""
-    title = "강남 가라오케 도파민 | 24시 연중무휴 프리미엄 파티 공간"
+    title = "강남 도파민 가라오케 | 24시 연중무휴 프리미엄 파티 공간"
     desc = "강남 선릉·삼성동에 위치한 프리미엄 가라오케 도파민. 24시간 연중무휴, 최첨단 시설과 현직 DJ 공연, 프라이빗한 공간에서 특별한 밤을 경험하세요. 실시간 특가 혜택!"
     kw = "강남 가라오케, 선릉 노래방, 삼성동 프리미엄 가라오케, 강남 가라오케 도파민, 24시 가라오케, 강남 룸"
     hero = '''  <section class="hero">
