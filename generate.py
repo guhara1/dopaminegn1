@@ -65,6 +65,14 @@ ROOMS = [
     ("room-s", "s", "S", "S 룸", "최대 8인", "소규모 모임이나 편안한 술자리를 위한 아늑하고 세련된 공간."),
 ]
 
+# 메인페이지 현장 사진 갤러리.
+# assets/photos/ 에 해당 webp 파일이 있을 때만 섹션이 생성된다(파일이 없으면 통째로 생략).
+GALLERY = [
+    ("exterior-sign.webp", "강남 도파민 가라오케 건물 외관과 간판", "선릉 단독 건물 · 도파민 간판"),
+    ("room-interior.webp", "도파민 가라오케 룸 내부 전경 – 샹들리에와 대형 소파", "룸 내부 – 샹들리에 & 대형 소파"),
+    ("room-styler.webp", "도파민 가라오케 룸에 비치된 의류관리기(스타일러)", "전 룸 의류관리기(스타일러) 비치"),
+]
+
 FAQ = [
     ("예약은 어떻게 하나요?", "전화 또는 카카오톡 채널로 연중무휴 24시간 상담 가능합니다. 인원과 방문 시간을 알려주시면 실시간으로 최적의 룸을 추천해 드립니다."),
     ("요금은 어떻게 되나요?", "주대 7만원부터 시작하며, 웹사이트 예약 시 다양한 특가 혜택을 제공합니다. 자세한 요금은 문의 시 실시간 안내해 드립니다."),
@@ -438,6 +446,33 @@ def rooms_html(cur_dir):
       </div>
     </div>
   </section>'''.format(cards="\n".join(cards))
+
+
+def gallery_items():
+    """assets/photos/ 에 실제로 존재하는 사진만 추린다."""
+    return [g for g in GALLERY if os.path.exists(os.path.join(OUT_DIR, "assets", "photos", g[0]))]
+
+
+def gallery_html(cur_dir):
+    """현장 사진 갤러리. 사진이 하나도 없으면 빈 문자열(섹션 미생성)."""
+    items = gallery_items()
+    if not items:
+        return ""
+    cards = "\n".join(
+        '''        <figure class="shot reveal">
+          <img src="{src}" alt="{alt}" loading="lazy" decoding="async" width="900" height="1200" />
+          <figcaption>{cap}</figcaption>
+        </figure>'''.format(src=rel("assets/photos/" + fn, cur_dir), alt=esc(alt), cap=esc(cap))
+        for fn, alt, cap in items)
+    return '''  <section class="section alt" id="gallery">
+    <div class="wrap">
+      <div class="section-head reveal"><span class="tag">PHOTO</span><h2>현장 사진</h2>
+        <p>보정 없는 실제 매장 사진입니다. 외관부터 룸 내부까지 직접 확인하세요.</p></div>
+      <div class="gallery">
+{cards}
+      </div>
+    </div>
+  </section>'''.format(cards=cards)
 
 
 def reviews_html(rating, count, reviews):
@@ -1005,13 +1040,16 @@ def build_main():
                        how=rel("pages/how.html", cur_dir), price=rel("pages/price.html", cur_dir),
                        phone=rel("pages/reserve-phone.html", cur_dir), kakao=rel("pages/reserve-kakao.html", cur_dir))
 
-    main_toc = [("도파민 소개", "about"), ("도파민만의 특별함", "features"), ("룸 & 시설", "rooms"),
-                ("후기 & 신뢰도", "reviews"), ("오시는 길", "location"), ("주제별 안내", "topics"), ("지역별 가라오케", "regions")]
-    body = "\n\n".join([
+    main_toc = [("도파민 소개", "about"), ("도파민만의 특별함", "features"), ("룸 & 시설", "rooms")]
+    if gallery_items():
+        main_toc.append(("현장 사진", "gallery"))
+    main_toc += [("후기 & 신뢰도", "reviews"), ("오시는 길", "location"),
+                 ("주제별 안내", "topics"), ("지역별 가라오케", "regions")]
+    body = "\n\n".join(s for s in [
         header_html(cur_dir), hero, toc_card_section(main_toc), prose, features_html(cur_dir), rooms_html(cur_dir),
-        reviews_html(MAIN_RATING, MAIN_COUNT, MAIN_REVIEWS), location_html(),
+        gallery_html(cur_dir), reviews_html(MAIN_RATING, MAIN_COUNT, MAIN_REVIEWS), location_html(),
         topic_links_html(cur_dir), region_links_html(cur_dir), cta_band_html(cur_dir), footer_html(cur_dir),
-    ])
+    ] if s)
     schema_objs = [website_schema(), local_business_schema(SITE_NAME, BASE_URL + "/", desc, MAIN_RATING, MAIN_COUNT, MAIN_REVIEWS)]
     page = head_html(title, desc, kw, BASE_URL + "/", schema_objs, cur_dir) + "\n" + body + "\n</body>\n</html>\n"
     with open(os.path.join(OUT_DIR, "index.html"), "w", encoding="utf-8") as f:
