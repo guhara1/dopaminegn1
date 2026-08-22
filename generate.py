@@ -59,20 +59,24 @@ FEATURES = [
     ("🔒", "완벽한 프라이버시 보장", "철저한 보안과 신분 보호 시스템으로 사적인 자리와 비즈니스를 완벽히 지켜드립니다."),
     ("🍽️", "강남 맛집급 안주 & 식사", "전문 셰프가 준비한 고퀄리티 안주와 다양한 주류로 술자리의 격을 높입니다."),
 ]
+# (id, 썸네일 클래스, 큰 글자, 제목, 배지, 설명, 링크, 버튼 문구)
+# 세 번째 카드는 룸이 아니라 '건물 입구' 안내 카드다.
 ROOMS = [
-    ("room-l", "l", "L", "L 룸", "최대 20인", "해외 귀빈 접대, 대규모 회식, VIP 파티에 최적화된 최고급 룸."),
-    ("room-m", "m", "M", "M 룸", "최대 14인", "중요한 고객 접대나 가까운 지인들과의 오붓한 생일 파티에 제격."),
-    ("room-s", "s", "S", "S 룸", "최대 8인", "소규모 모임이나 편안한 술자리를 위한 아늑하고 세련된 공간."),
+    ("room-l", "l", "L", "L 룸", "최대 20인", "해외 귀빈 접대, 대규모 회식, VIP 파티에 최적화된 최고급 룸.",
+     "pages/room-l.html", "L 룸 자세히 보기"),
+    ("room-m", "m", "M", "M 룸", "최대 14인", "중요한 고객 접대나 가까운 지인들과의 오붓한 생일 파티에 제격.",
+     "pages/room-m.html", "M 룸 자세히 보기"),
+    ("entrance", "s", "", "건물 입구", "선릉로92길 38", "파란 ‘도파민’ 간판이 걸린 단독 건물입니다. 1층 입구로 들어오시면 됩니다.",
+     "pages/location.html", "오시는 길 보기"),
 ]
 
 # 실매장 사진(assets/photos/). 파일이 있을 때만 사용되고, 없으면 기존 그라데이션/레이아웃으로 폴백한다.
 # (파일명, alt, object-position) — 세로 사진을 가로 카드에 담으므로 크롭 기준점을 사진별로 지정한다.
 ROOM_PHOTOS = {
-    "L": ("room-interior.webp", "도파민 가라오케 L 룸 내부 – 샹들리에와 대형 소파", "center 40%"),
-    "M": ("room-styler.webp", "도파민 가라오케 M 룸 – 의류관리기(스타일러) 비치", "center 40%"),
-    # 세 번째 카드는 룸 내부가 아니라 건물 외관 사진이므로 alt는 사진 그대로 기술한다.
+    "room-l": ("room-interior.webp", "도파민 가라오케 L 룸 내부 – 샹들리에와 대형 소파", "center 40%"),
+    "room-m": ("room-styler.webp", "도파민 가라오케 M 룸 – 의류관리기(스타일러) 비치", "center 40%"),
     # 간판이 잘리지 않도록 위쪽(22%)을 기준으로 크롭.
-    "S": ("exterior-sign.webp", "강남 도파민 가라오케 건물 외관과 간판", "center 22%"),
+    "entrance": ("exterior-sign.webp", "강남 도파민 가라오케 건물 외관과 파란 간판", "center 22%"),
 }
 
 FAQ = [
@@ -431,31 +435,32 @@ def features_html(cur_dir):
 
 
 def rooms_html(cur_dir):
-    page_for = {"L": "pages/room-l.html", "M": "pages/room-m.html", "S": "pages/room-s.html"}
     cards = []
-    for rid, cls, cap, name, pers, desc in ROOMS:
+    for rid, cls, cap, name, pers, desc, page, cta in ROOMS:
         # 실사진이 있으면 그라데이션 위에 얹고, 없으면 기존 그라데이션 그대로.
         photo, extra_cls = "", ""
-        if cap in ROOM_PHOTOS and has_photo(ROOM_PHOTOS[cap][0]):
-            fn, alt, focus = ROOM_PHOTOS[cap]
+        if rid in ROOM_PHOTOS and has_photo(ROOM_PHOTOS[rid][0]):
+            fn, alt, focus = ROOM_PHOTOS[rid]
             photo = '<img src="{src}" alt="{alt}" loading="lazy" decoding="async" style="object-position:{focus}" />'.format(
                 src=rel("assets/photos/" + fn, cur_dir), alt=esc(alt), focus=focus)
             extra_cls = " has-photo"
+        cap_html = '<span class="cap">{}</span>'.format(esc(cap)) if cap else ""
         cards.append('''        <article class="room reveal" id="{rid}">
-          <div class="thumb {cls}{extra}">{photo}<span class="cap">{cap}</span><span class="pers">{pers}</span></div>
+          <div class="thumb {cls}{extra}">{photo}{cap}<span class="pers">{pers}</span></div>
           <div class="body"><h3>{name}</h3><p>{desc}</p>
-            <a class="btn btn-ghost btn-sm" href="{href}">{name} 자세히 보기</a></div>
-        </article>'''.format(rid=rid, cls=cls, extra=extra_cls, photo=photo, cap=cap, pers=esc(pers),
-                             name=esc(name), desc=esc(desc), href=rel(page_for[cap], cur_dir)))
+            <a class="btn btn-ghost btn-sm" href="{href}">{cta}</a></div>
+        </article>'''.format(rid=rid, cls=cls, extra=extra_cls, photo=photo, cap=cap_html, pers=esc(pers),
+                             name=esc(name), desc=esc(desc), href=rel(page, cur_dir), cta=esc(cta)))
     return '''  <section class="section" id="rooms">
     <div class="wrap">
       <div class="section-head reveal"><span class="tag">ROOM TOUR</span><h2>룸 & 시설</h2>
-        <p>파티의 규모와 성격에 맞춰 완벽한 공간을 제공합니다. 전 룸 완벽 방음.</p></div>
+        <p>파티의 규모와 성격에 맞춰 완벽한 공간을 제공합니다. 전 룸 완벽 방음.
+          소규모 모임을 위한 <a href="{room_s}">S 룸(최대 8인)</a>도 운영합니다.</p></div>
       <div class="rooms">
 {cards}
       </div>
     </div>
-  </section>'''.format(cards="\n".join(cards))
+  </section>'''.format(cards="\n".join(cards), room_s=rel("pages/room-s.html", cur_dir))
 
 
 def has_photo(filename):
