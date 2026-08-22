@@ -23,23 +23,38 @@ MAX_EDGE = 1200
 NAMES = ["exterior-sign.webp", "room-interior.webp", "room-styler.webp"]
 
 
-def encode(src, dst, target=TARGET_BYTES, max_edge=MAX_EDGE):
-    im = Image.open(src)
-    im = im.convert("RGB")
-    if max(im.size) > max_edge:
-        ratio = max_edge / float(max(im.size))
-        im = im.resize((max(1, int(im.width * ratio)), max(1, int(im.height * ratio))), Image.LANCZOS)
+MIN_QUALITY = 62   # 이 아래로는 어두운 실내 사진에서 블록 노이즈가 눈에 띈다.
 
-    # 품질을 낮춰가며 목표 용량을 맞추고, 그래도 크면 해상도를 단계적으로 줄인다.
-    for edge in (max_edge, int(max_edge * 0.85), int(max_edge * 0.7)):
-        cur = im
-        if max(cur.size) > edge:
-            ratio = edge / float(max(cur.size))
-            cur = im.resize((max(1, int(im.width * ratio)), max(1, int(im.height * ratio))), Image.LANCZOS)
-        for q in range(82, 29, -4):
+
+def _fit(im, edge):
+    if max(im.size) <= edge:
+        return im
+    ratio = edge / float(max(im.size))
+    return im.resize((max(1, int(im.width * ratio)), max(1, int(im.height * ratio))), Image.LANCZOS)
+
+
+def encode(src, dst, target=TARGET_BYTES, max_edge=MAX_EDGE):
+    """목표 용량 안에서 '품질 우선'으로 인코딩한다.
+
+    같은 30KB라면 해상도를 낮추고 품질을 지키는 쪽이 더 깨끗하다.
+    갤러리 카드는 실제로 360px 안팎으로 표시되므로 700~800px이면 2x 화면에도 충분하다.
+    """
+    im = Image.open(src).convert("RGB")
+
+    # 큰 해상도부터 시도하되 품질 하한(MIN_QUALITY)을 지킬 수 있는 조합만 채택.
+    for edge in (max_edge, 1000, 900, 800, 700, 600):
+        cur = _fit(im, edge)
+        for q in range(88, MIN_QUALITY - 1, -3):
             cur.save(dst, "WEBP", quality=q, method=6)
             if os.path.getsize(dst) <= target:
                 return cur.size, q, os.path.getsize(dst)
+
+    # 최소 해상도에서도 안 맞으면 그때만 품질을 더 낮춘다.
+    cur = _fit(im, 600)
+    for q in range(MIN_QUALITY, 29, -4):
+        cur.save(dst, "WEBP", quality=q, method=6)
+        if os.path.getsize(dst) <= target:
+            break
     return cur.size, q, os.path.getsize(dst)
 
 
