@@ -66,11 +66,14 @@ ROOMS = [
 ]
 
 # 실매장 사진(assets/photos/). 파일이 있을 때만 사용되고, 없으면 기존 그라데이션/레이아웃으로 폴백한다.
+# (파일명, alt, object-position) — 세로 사진을 가로 카드에 담으므로 크롭 기준점을 사진별로 지정한다.
 ROOM_PHOTOS = {
-    "L": ("room-interior.webp", "도파민 가라오케 L 룸 내부 – 샹들리에와 대형 소파"),
-    "M": ("room-styler.webp", "도파민 가라오케 M 룸 – 의류관리기(스타일러) 비치"),
+    "L": ("room-interior.webp", "도파민 가라오케 L 룸 내부 – 샹들리에와 대형 소파", "center 40%"),
+    "M": ("room-styler.webp", "도파민 가라오케 M 룸 – 의류관리기(스타일러) 비치", "center 40%"),
+    # 세 번째 카드는 룸 내부가 아니라 건물 외관 사진이므로 alt는 사진 그대로 기술한다.
+    # 간판이 잘리지 않도록 위쪽(22%)을 기준으로 크롭.
+    "S": ("exterior-sign.webp", "강남 도파민 가라오케 건물 외관과 간판", "center 22%"),
 }
-EXTERIOR_PHOTO = ("exterior-sign.webp", "강남 도파민 가라오케 건물 외관과 간판")
 
 FAQ = [
     ("예약은 어떻게 하나요?", "전화 또는 카카오톡 채널로 연중무휴 24시간 상담 가능합니다. 인원과 방문 시간을 알려주시면 실시간으로 최적의 룸을 추천해 드립니다."),
@@ -434,9 +437,9 @@ def rooms_html(cur_dir):
         # 실사진이 있으면 그라데이션 위에 얹고, 없으면 기존 그라데이션 그대로.
         photo, extra_cls = "", ""
         if cap in ROOM_PHOTOS and has_photo(ROOM_PHOTOS[cap][0]):
-            fn, alt = ROOM_PHOTOS[cap]
-            photo = '<img src="{src}" alt="{alt}" loading="lazy" decoding="async" />'.format(
-                src=rel("assets/photos/" + fn, cur_dir), alt=esc(alt))
+            fn, alt, focus = ROOM_PHOTOS[cap]
+            photo = '<img src="{src}" alt="{alt}" loading="lazy" decoding="async" style="object-position:{focus}" />'.format(
+                src=rel("assets/photos/" + fn, cur_dir), alt=esc(alt), focus=focus)
             extra_cls = " has-photo"
         cards.append('''        <article class="room reveal" id="{rid}">
           <div class="thumb {cls}{extra}">{photo}<span class="cap">{cap}</span><span class="pers">{pers}</span></div>
@@ -474,15 +477,6 @@ def reviews_html(rating, count, reviews):
 
 
 def location_html(cur_dir=""):
-    # 매장 외관 사진이 있으면 지도 아래에 함께 노출 (찾아올 때 건물 식별용).
-    fn, alt = EXTERIOR_PHOTO
-    exterior = ""
-    if has_photo(fn):
-        exterior = '''
-        <figure class="storefront reveal">
-          <img src="{src}" alt="{alt}" loading="lazy" decoding="async" />
-          <figcaption>건물 외관 · 파란 &lsquo;도파민&rsquo; 간판을 찾으세요</figcaption>
-        </figure>'''.format(src=rel("assets/photos/" + fn, cur_dir), alt=esc(alt))
     return '''  <section class="section" id="location">
     <div class="wrap">
       <div class="section-head reveal"><span class="tag">LOCATION</span><h2>오시는 길</h2>
@@ -495,10 +489,10 @@ def location_html(cur_dir=""):
           <dt>예약·문의</dt><dd><a href="{tel}" style="color:var(--accent)">전화 예약 {tel_disp}</a> · <a href="{kakao}" style="color:var(--accent)">카카오톡 채널</a></dd>
           <dt>특별 서비스</dt><dd>강남권 VIP 최고급 차량 픽업 (사전 문의)</dd>
         </dl>
-      </div>{exterior}
+      </div>
     </div>
   </section>'''.format(map=MAP_SRC, addr=esc(ADDRESS), tel=CONTACT_TEL, tel_disp=esc(TEL_DISPLAY),
-                       kakao=KAKAO_URL, exterior=exterior)
+                       kakao=KAKAO_URL)
 
 
 # ---------- 본문 블록 → HTML ----------
