@@ -20,9 +20,9 @@ import urllib.parse
 SITE_NAME = "강남 가라오케 도파민"
 BASE_URL = "https://dopaminegn1.com"
 ADDRESS = "서울특별시 강남구 선릉로92길 38"
-TEL_DISPLAY = "010-3024-7591"          # 예약 전화번호 (표시용)
-CONTACT_TEL = "tel:010-3024-7591"      # 예약 전화 링크
-TEL_INTL = "+82-10-3024-7591"          # 스키마용 국제 표기
+TEL_DISPLAY = "010-3026-7591"          # 예약 전화번호 (표시용)
+CONTACT_TEL = "tel:010-3026-7591"      # 예약 전화 링크
+TEL_INTL = "+82-10-3026-7591"          # 스키마용 국제 표기
 KAKAO_URL = "#"               # TODO: 카카오톡 채널 링크로 교체
 OG_IMAGE = BASE_URL + "/og-image.png"
 AUTHOR = "도파민 운영팀"
